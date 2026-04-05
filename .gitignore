@@ -1,0 +1,35 @@
+# Go
+bin/
+*.exe
+*.test
+*.out
+
+# Dependencies
+vendor/
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+.next/
+.expo/
+*.apk
+*.ipa
+
+# Coverage
+coverage/
+*.coverprofile
