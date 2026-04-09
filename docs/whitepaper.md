@@ -436,8 +436,6 @@ internal/
     ollama/     ← implementacion de Embedder (embeddings locales)
     anthropic/  ← implementacion de LanguageModel (Claude API)
     http/       ← handlers, router, middleware HTTP
-    minio/      ← almacenamiento de objetos
-    redis/      ← cache (futuro)
 
 cmd/
   api/          ← servidor HTTP

@@ -98,8 +98,6 @@ internal/platform/
   ollama/       ← Implementa Embedder + LanguageModel (local)
   anthropic/    ← Implementa LanguageModel (externo)
   http/         ← Expone el motor via REST API
-  minio/        ← (stub) Implementara almacenamiento de objetos
-  redis/        ← (stub) Implementara cache de consultas
 ```
 
 **Mapa de adapter a port:**
@@ -166,7 +164,7 @@ type Record struct {
     ActorRef   *string                // Quien: "user:juan@empresa.com"
     Title      *string                // Titulo legible
     Payload    map[string]interface{} // Datos libres (schema-free)
-    ObjectRefs []string               // Referencias a archivos (MinIO)
+    ObjectRefs []string               // Referencias a archivos
     Tags       []string               // Etiquetas para filtrado
     Metadata   map[string]interface{} // Metadata del sistema
     Checksum   string                 // SHA-256 del contenido canonico
@@ -266,9 +264,7 @@ ADAPTERS
   |     └── SDK movil (propuesto)
   |
   ├── PERSISTENCIA (donde se almacenan datos)
-  |     ├── PostgreSQL (actual: records + embeddings + auth)
-  |     ├── MinIO (stub: almacenamiento de archivos)
-  |     └── Redis (stub: cache de consultas)
+  |     └── PostgreSQL (actual: records + embeddings + auth)
   |
   ├── PROCESAMIENTO (como se transforman datos)
   |     ├── Ollama Embedder (actual: embeddings locales)
@@ -471,7 +467,7 @@ Intento 10: 512s (cap a 300s)
 
 #### 5.3.2 Cache de consultas frecuentes
 
-**Estado actual:** Redis esta declarado como dependencia pero no implementado.
+**Estado actual:** no implementado.
 
 **Propuesta:** Cache de dos niveles:
 
@@ -576,7 +572,7 @@ Se evaluo OTel como mecanismo de ingesta. Conclusion: **no aplica**. OTel instru
 
 ```
 WhatsApp webhook → Message Parser → Record mapping → RecordService.Ingest()
-                                   → Media download → MinIO storage
+                                   → Media download → Object storage
                                    → Audio → Whisper → transcription
 ```
 
@@ -585,7 +581,7 @@ WhatsApp webhook → Message Parser → Record mapping → RecordService.Ingest(
 | Tipo WhatsApp | RecordType | Procesamiento adicional |
 |---------------|-----------|------------------------|
 | Texto | `note` | Extraccion de entidades del texto |
-| Foto | `photo` | OCR (Tesseract), almacenamiento (MinIO) |
+| Foto | `photo` | OCR (Tesseract), almacenamiento |
 | Audio | `audio` | Transcripcion (Whisper), luego como texto |
 | Documento | `document` | Parsing segun tipo (PDF, Excel), almacenamiento |
 | Ubicacion | `location` | Coordenadas en payload |
@@ -714,10 +710,10 @@ auth/
 | 1 | API key prefix cache | 2h | Alto: auth O(1) vs O(n) |
 | 2 | Batch processing en worker | 4h | Alto: throughput 5-10x |
 | 3 | Circuit breaker para Ollama/LLM | 3h | Alto: resiliencia |
-| 4 | Cache de embedding de consulta (Redis) | 4h | Medio: elimina re-embedding |
+| 4 | Cache de embedding de consulta | 4h | Medio: elimina re-embedding |
 | 5 | Prompt compression (formato compacto) | 2h | Medio: 30-50% menos tokens |
 | 6 | Clasificacion pre-LLM de consultas | 6h | Alto: 60-70% consultas sin LLM externo |
 | 7 | Dead letter queue | 2h | Medio: visibilidad de fallas |
 | 8 | HNSW tuning dinamico | 1h | Bajo-medio: depende de volumen |
-| 9 | Cache de respuesta completa (Redis) | 4h | Medio: consultas repetidas <10ms |
+| 9 | Cache de respuesta completa | 4h | Medio: consultas repetidas <10ms |
 | 10 | Validacion de embeddings | 1h | Bajo: prevencion de data corrupta |

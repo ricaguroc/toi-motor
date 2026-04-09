@@ -72,8 +72,6 @@ internal/
       search_handler.go # POST /search (RAG sin LLM)
       query_handler.go  # POST /query (RAG + LLM)
       health_handler.go # /health, /health/live, /health/ready
-    minio/              # Adaptador: MinIO (object storage)
-    redis/              # Adaptador: Redis (cache, futuro)
 migrations/
   001_records.up.sql          # Tabla records + FTS + indices
   002_record_embeddings.up.sql # Tabla record_embeddings + HNSW + pgvector
@@ -88,7 +86,7 @@ tests/
 |---------|-------|
 | Archivos fuente Go | 69 |
 | Paquetes de dominio | 4 (record, indexing, query, auth) |
-| Paquetes de adaptador | 6 (postgres, nats, ollama, anthropic, http, minio) |
+| Paquetes de adaptador | 5 (postgres, nats, ollama, anthropic, http) |
 | Funciones de test | 119 |
 | Binarios | 2 (api, worker) |
 | Migraciones SQL | 3 |
@@ -97,14 +95,12 @@ tests/
 
 ## 3. Infraestructura
 
-El motor se levanta con **Docker Compose** y 5 servicios:
+El motor se levanta con **Docker Compose** y 3 servicios de infraestructura + 2 de aplicacion:
 
 | Servicio | Imagen | Proposito |
 |----------|--------|-----------|
 | PostgreSQL 16 + pgvector | `pgvector/pgvector:pg16` | Almacenamiento relacional, busqueda vectorial (HNSW), full-text search (tsvector spanish) |
 | NATS JetStream | `nats:2.10-alpine` | Pipeline asincrono de indexacion. El API publica `record.ingested`, el worker consume |
-| MinIO | `minio/minio:latest` | Object storage para archivos adjuntos (fotos, PDFs, escaneos) |
-| Redis 7 | `redis:7-alpine` | Cache con eviccion LRU (256MB). Reservado para uso futuro |
 | Ollama | `ollama/ollama:latest` | Modelo de embeddings local (`nomic-embed-text`, 768 dimensiones). Opcionalmente LLM local |
 
 **Modelo de embeddings:** `nomic-embed-text` genera vectores de 768 dimensiones. Corre localmente en Ollama --- los datos NUNCA salen de la infraestructura para la generacion de embeddings.
@@ -302,7 +298,7 @@ Combina busqueda semantica con un LLM para responder preguntas en lenguaje natur
 
 ### GET /health --- Salud de Infraestructura
 
-Verifica la conectividad con PostgreSQL, NATS, Redis y Ollama. Retorna `200` si todo esta operativo, `503` si algun servicio esta degradado. No requiere autenticacion.
+Verifica la conectividad con PostgreSQL, NATS y Ollama. Retorna `200` si todo esta operativo, `503` si algun servicio esta degradado. No requiere autenticacion.
 
 **Response (200 OK):**
 
@@ -312,7 +308,6 @@ Verifica la conectividad con PostgreSQL, NATS, Redis y Ollama. Retorna `200` si 
   "checks": {
     "postgres": "ok",
     "nats": "ok",
-    "redis": "ok",
     "embeddings": "ok"
   }
 }
@@ -420,9 +415,7 @@ Durante el desarrollo y las pruebas E2E se identificaron y corrigieron los sigui
 
 2. **PostgreSQL: NOT NULL violation por payload/tags nil.** Cuando un registro se ingresaba sin `payload` o `tags`, el INSERT fallaba porque las columnas tienen constraint `NOT NULL DEFAULT '{}'`. Se agregaron defaults en la capa de servicio: si `payload` es nil se inicializa como `map[string]any{}`, si `tags` es nil se inicializa como `[]string{}`.
 
-3. **Redis health check: formato de URL.** El health check de Redis esperaba `host:port` para hacer TCP dial, pero `REDIS_URL` se configuraba con protocolo (`redis://localhost:6379`). Se normalizo el formato para que el health checker reciba la direccion sin protocolo.
-
-4. **Record handler: errores tragados sin logging.** Varios paths de error en el handler de records retornaban 500 sin loguear el error real. Se agrego `slog.Error` en cada caso para facilitar diagnostico en produccion.
+3. **Record handler: errores tragados sin logging.** Varios paths de error en el handler de records retornaban 500 sin loguear el error real. Se agrego `slog.Error` en cada caso para facilitar diagnostico en produccion.
 
 ---
 

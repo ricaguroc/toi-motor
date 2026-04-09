@@ -1,310 +1,529 @@
-# TOI — Motor Universal de Registros
+# TOI Motor — Universal Record Engine
 
-Ingesta cualquier dato. Consultá en lenguaje natural.
+Ingest any data. Query in natural language.
 
-TOI es un motor que transforma datos heterogéneos en conocimiento buscable usando embeddings, RAG y LLM. Open source, API-first, agnóstico al proveedor de LLM.
+TOI is an engine that transforms heterogeneous data into searchable knowledge using embeddings, RAG, and LLMs. Open source, API-first, LLM-agnostic.
 
 ```bash
-$ toi ingest file facturas.csv --source erp --type factura
-✓ 1,847 registros ingestados en 2.3s
+$ toi ingest file invoices.csv --source erp --type invoice
+✓ 1,847 records ingested in 2.3s
 
-$ toi query "¿qué envíos se retrasaron la semana pasada?"
-Se encontraron 12 registros en 3 fuentes...
+$ toi query "what shipments were delayed last week?"
+Found 12 records across 3 sources...
 
-1. Envío #LP-4821 — retrasado 2 días
-   Fuente: ERP · Registrado: 2026-03-12
+1. Shipment #LP-4821 — delayed 2 days
+   Source: ERP · Recorded: 2026-03-12
 ```
 
 ---
 
-## Cómo funciona
+## How it works
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         FUENTES                                  │
-│  CSV · ERP · Escáners · Formularios · Email · APIs · Sensores   │
-└────────────────────────────┬──────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                         SOURCES                              │
+│  CSV · ERP · Scanners · Forms · Email · APIs · Sensors       │
+└────────────────────────────┬─────────────────────────────────┘
                              │
                     ┌────────▼────────┐
                     │    CLI / API     │  toi ingest file, POST /records
                     └────────┬────────┘
                              │
               ┌──────────────▼──────────────┐
-              │    Motor Universal (TOI)     │
-              │                              │
-              │  01 INGESTA                  │
-              │  Registro universal flexible │
-              │  Append-only, inmutable      │
-              │  Checksum SHA-256            │
-              │                              │
-              │  02 INDEXACIÓN               │
+              │    Universal Engine (TOI)    │
+              │                             │
+              │  01 INGESTION               │
+              │  Flexible universal record   │
+              │  Append-only, immutable      │
+              │  SHA-256 checksum            │
+              │                             │
+              │  02 INDEXING                 │
               │  Chunking + Embeddings       │
-              │  Pipeline async via NATS     │
-              │  pgvector con HNSW           │
-              │                              │
-              │  03 CONSULTA                 │
-              │  RAG + LLM agnóstico         │
-              │  Lenguaje natural            │
-              │  Respuestas con evidencia    │
-              └──────────────────────────────┘
+              │  Async pipeline via NATS     │
+              │  pgvector with HNSW          │
+              │                             │
+              │  03 QUERY                    │
+              │  LLM-agnostic RAG            │
+              │  Natural language            │
+              │  Answers with evidence       │
+              └─────────────────────────────┘
 ```
 
-## Inicio rápido
+---
 
-### Prerrequisitos
+## Quick start
 
-- Go 1.22+
-- Docker y Docker Compose
+### Prerequisites
 
-### 1. Clonar y levantar
+- Docker and Docker Compose
+
+That's it. Everything runs containerized.
+
+### 1. Clone and deploy
 
 ```bash
-git clone https://github.com/trazabilidad-io/motor.git
-cd motor
-docker compose up -d
+git clone https://github.com/ricaguroc/toi-motor.git
+cd toi-motor
+make deploy
 ```
 
-Esto levanta PostgreSQL (pgvector), NATS JetStream, Ollama, MinIO y Redis.
+`make deploy` builds the Go binaries, pulls the Ollama embedding model, runs database migrations, and starts the full stack. One command.
 
-### 2. Ejecutar las migraciones y crear una API key
+### 2. Create an API key
 
 ```bash
-go run ./cmd/api/    # levanta el servidor HTTP en :8080
-go run ./cmd/worker/ # levanta el worker de indexación
+# Enter the running API container
+docker compose exec api /bin/sh
+
+# Inside the container, run the key creation script
+# (or connect to postgres directly)
 ```
 
+Or if you have Go installed locally:
+
 ```bash
-# En otra terminal: crear una API key
-go run ./scripts/create-apikey.go
-# Output: tu-api-key-aquí
+make dev-infra   # start only infrastructure
+go run scripts/create-apikey.go -name "default"
 ```
 
-### 3. Ingestar registros
+### 3. Try it out
 
-**Via CLI:**
+Replace `YOUR_API_KEY` with the key from step 2.
 
-```bash
-export TOI_API_KEY=tu-api-key-aquí
-
-# Importar un CSV
-toi ingest file datos.csv --source erp --type movimiento
-
-# Importar JSON
-toi ingest file registros.json --source scanner --type escaneo
-
-# Importar JSONL (un registro por línea)
-toi ingest bulk historico.jsonl
-
-# Monitorear una carpeta (auto-ingesta archivos nuevos)
-toi watch /data/escaneos --source scanner --type escaneo
-```
-
-**Via API:**
+#### Ingest a record
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/records \
-  -H "X-API-Key: tu-api-key-aquí" \
+curl -s -X POST http://localhost:8080/api/v1/records \
+  -H "X-API-Key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "source": "scanner_dock_3",
+    "source": "warehouse",
     "record_type": "scan",
     "entity_ref": "lot:LP-4821",
     "actor_ref": "operator:jperez",
-    "title": "Escaneo de ingreso lote LP-4821",
+    "title": "Incoming scan — lot LP-4821",
     "payload": {
       "temperature_c": 4.2,
       "weight_kg": 1250.5,
-      "seal_intact": true
+      "seal_intact": true,
+      "dock": "D3"
     },
     "tags": ["cold-chain", "incoming"]
   }'
 ```
 
-### 4. Consultar
+Response:
+
+```json
+{
+  "record_id": "a1b2c3d4-...",
+  "ingested_at": "2026-04-09T10:30:00Z",
+  "checksum": "sha256:ab3f..."
+}
+```
+
+#### Ingest more records (build some context)
 
 ```bash
-# Consulta en lenguaje natural (RAG + LLM)
-toi query "¿qué pasó con el lote LP-4821?"
+# Temperature alert on same lot
+curl -s -X POST http://localhost:8080/api/v1/records \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": "sensor_dock_3",
+    "record_type": "alert",
+    "entity_ref": "lot:LP-4821",
+    "title": "Temperature excursion detected",
+    "payload": {
+      "temperature_c": 9.8,
+      "threshold_c": 8.0,
+      "duration_min": 14,
+      "zone": "cold-storage-A"
+    },
+    "tags": ["cold-chain", "alert", "temperature"]
+  }'
 
-# Búsqueda semántica (solo RAG, sin LLM)
-toi search "lote LP-4821 temperatura"
+# Movement to quality hold
+curl -s -X POST http://localhost:8080/api/v1/records \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": "wms",
+    "record_type": "movement",
+    "entity_ref": "lot:LP-4821",
+    "actor_ref": "operator:mgarcia",
+    "title": "Lot moved to quality hold",
+    "payload": {
+      "from_location": "cold-storage-A",
+      "to_location": "quality-hold-1",
+      "reason": "temperature excursion pending review"
+    },
+    "tags": ["quality", "hold"]
+  }'
+
+# A different lot — normal operation
+curl -s -X POST http://localhost:8080/api/v1/records \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": "warehouse",
+    "record_type": "scan",
+    "entity_ref": "lot:LP-5010",
+    "actor_ref": "operator:jperez",
+    "title": "Incoming scan — lot LP-5010",
+    "payload": {
+      "temperature_c": 3.1,
+      "weight_kg": 980.0,
+      "seal_intact": true,
+      "dock": "D1"
+    },
+    "tags": ["cold-chain", "incoming"]
+  }'
+
+# Equipment maintenance record
+curl -s -X POST http://localhost:8080/api/v1/records \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": "maintenance",
+    "record_type": "work_order",
+    "entity_ref": "equipment:COMP-A01",
+    "actor_ref": "tech:rlopez",
+    "title": "Compressor A01 — scheduled maintenance",
+    "payload": {
+      "work_type": "preventive",
+      "findings": "Refrigerant low, recharged to spec. Filter replaced.",
+      "downtime_min": 45,
+      "parts_used": ["filter-FK200", "refrigerant-R404A"]
+    },
+    "tags": ["maintenance", "cold-chain", "compressor"]
+  }'
+```
+
+#### List records
+
+```bash
+# All records
+curl -s http://localhost:8080/api/v1/records \
+  -H "X-API-Key: YOUR_API_KEY" | jq
+
+# Filter by entity
+curl -s "http://localhost:8080/api/v1/records?entity_ref=lot:LP-4821" \
+  -H "X-API-Key: YOUR_API_KEY" | jq
+
+# Filter by type
+curl -s "http://localhost:8080/api/v1/records?record_type=alert" \
+  -H "X-API-Key: YOUR_API_KEY" | jq
+
+# Filter by tag
+curl -s "http://localhost:8080/api/v1/records?tag=cold-chain" \
+  -H "X-API-Key: YOUR_API_KEY" | jq
+
+# Filter by source
+curl -s "http://localhost:8080/api/v1/records?source=maintenance" \
+  -H "X-API-Key: YOUR_API_KEY" | jq
+```
+
+#### Semantic search (RAG, no LLM)
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/search \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"q": "temperature problems cold storage"}' | jq
+```
+
+#### Natural language query (RAG + LLM)
+
+Requires `LLM_API_KEY` configured in `docker-compose.yml`.
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/query \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "q": "What happened with lot LP-4821?",
+    "format": "conversational"
+  }' | jq
+```
+
+Response:
+
+```json
+{
+  "answer": "Lot LP-4821 arrived at dock D3 with a temperature of 4.2°C. A sensor later detected a temperature excursion to 9.8°C (threshold: 8.0°C) lasting 14 minutes in cold-storage-A. The lot was moved to quality-hold-1 pending review.",
+  "confidence": "high",
+  "records_cited": ["a1b2c3d4-...", "e5f6g7h8-...", "i9j0k1l2-..."],
+  "gaps": null,
+  "suggested_followup": [
+    "Was the temperature excursion resolved?",
+    "What other lots were in cold-storage-A during that time?"
+  ],
+  "retrieved_count": 3,
+  "query_ms": 2340
+}
+```
+
+#### Check system health
+
+```bash
+curl -s http://localhost:8080/health | jq
+```
+
+---
+
+## Makefile commands
+
+Everything you need runs through `make`:
+
+| Command | What it does |
+|---------|-------------|
+| `make deploy` | Build images + start all services (full stack) |
+| `make up` | Start services (pre-built, no rebuild) |
+| `make down` | Stop all services |
+| `make logs` | Tail logs from all services |
+| `make logs-api` | Tail API logs only |
+| `make logs-worker` | Tail worker logs only |
+| `make test` | Run unit tests |
+| `make bench` | Run all benchmarks (22 benchmarks across 3 packages) |
+| `make test-integration` | Run integration tests |
+| `make lint` | Run `go vet` |
+| `make build` | Build Go binaries to `bin/` |
+| `make clean` | Remove build artifacts |
+| `make clean-all` | Remove everything including Docker volumes |
+
+### Local development
+
+If you want to iterate on Go code without rebuilding Docker images:
+
+```bash
+make dev-infra    # start only postgres, nats, ollama
+make dev-api      # run API locally (in one terminal)
+make dev-worker   # run worker locally (in another terminal)
 ```
 
 ---
 
 ## CLI
 
-El CLI `toi` es la capa de conveniencia sobre la API. Compila como un solo binario Go.
+The `toi` CLI is a convenience layer over the API. It compiles to a single Go binary.
 
 ```bash
 go build -o toi ./cmd/toi/
+# or
+make build   # builds all 3 binaries to bin/
 ```
 
-| Comando | Descripción |
+| Command | Description |
 |---------|-------------|
-| `toi ingest file <path>` | Importa CSV o JSON como registros |
-| `toi ingest bulk <path>` | Importa JSONL (un registro por línea) |
-| `toi query <pregunta>` | Consulta en lenguaje natural (RAG + LLM) |
-| `toi search <query>` | Búsqueda semántica sin LLM |
-| `toi watch <dir>` | Monitorea carpeta y auto-ingesta archivos nuevos |
+| `toi ingest file <path>` | Import CSV or JSON file as records |
+| `toi ingest bulk <path>` | Import JSONL (one record per line) |
+| `toi query <question>` | Natural language query (RAG + LLM) |
+| `toi search <query>` | Semantic search without LLM |
+| `toi watch <dir>` | Watch directory and auto-ingest new files |
 
-**Configuración:**
+**Configuration:**
 
-| Flag | Variable de entorno | Default |
-|------|-------------------|---------|
+| Flag | Environment variable | Default |
+|------|---------------------|---------|
 | `--api-url` | `TOI_API_URL` | `http://localhost:8080` |
-| `--api-key` | `TOI_API_KEY` | (requerido) |
+| `--api-key` | `TOI_API_KEY` | (required) |
 | `--source` | — | `cli` |
 | `--type` | — | `document` |
 
-**Mapeo CSV:** las columnas `source`, `record_type`, `occurred_at`, `entity_ref`, `actor_ref`, `title` y `tags` se mapean a campos del registro. Cualquier otra columna va a `payload`.
+**CSV mapping:** columns named `source`, `record_type`, `occurred_at`, `entity_ref`, `actor_ref`, `title`, and `tags` map to record fields. Everything else goes into `payload`.
 
 ---
 
-## API
+## API reference
 
-Todos los endpoints bajo `/api/v1/*` requieren header `X-API-Key`.
+All endpoints under `/api/v1/*` require the `X-API-Key` header.
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/v1/records` | Ingestar un registro |
-| `GET` | `/api/v1/records/:id` | Obtener un registro por ID |
-| `GET` | `/api/v1/records` | Listar registros con filtros |
-| `POST` | `/api/v1/search` | Búsqueda semántica (RAG sin LLM) |
-| `POST` | `/api/v1/query` | Consulta en lenguaje natural (RAG + LLM) |
-| `GET` | `/health` | Estado de la infraestructura |
+| `POST` | `/api/v1/records` | Ingest a record |
+| `GET` | `/api/v1/records/:id` | Get a record by ID |
+| `GET` | `/api/v1/records` | List records with filters |
+| `POST` | `/api/v1/search` | Semantic search (RAG without LLM) |
+| `POST` | `/api/v1/query` | Natural language query (RAG + LLM) |
+| `GET` | `/health` | Infrastructure health (no auth required) |
+| `GET` | `/health/live` | Liveness probe |
+| `GET` | `/health/ready` | Readiness probe |
 
-**Filtros de listado:** `entity_ref`, `actor_ref`, `record_type`, `source`, `tag`, `from`, `to`, `limit` (1-200), `cursor_time` + `cursor_id`.
+**List filters:** `entity_ref`, `actor_ref`, `record_type`, `source`, `tag`, `from`, `to`, `limit` (1-200), `cursor_time` + `cursor_id`.
 
 ---
 
-## Modelo de datos
+## Data model
 
-Todo lo que entra al motor es un **Record** — un registro universal, inmutable y con esquema abierto:
+Everything that enters the engine is a **Record** — a universal, immutable, open-schema event:
 
 ```go
 type Record struct {
-    RecordID   uuid.UUID      // identificador público estable
-    OccurredAt time.Time      // cuándo ocurrió
-    IngestedAt time.Time      // cuándo se registró
-    Source     string         // origen: "erp", "scanner", "manual"
-    RecordType string         // tipo: "scan", "movement", "note"
-    EntityRef  *string        // entidad: "lot:L-2024-001", "equipment:PUMP-01"
-    ActorRef   *string        // actor: "user:maria@empresa.com"
-    Title      *string        // título descriptivo
-    Payload    map[string]any // datos libres (JSONB)
-    ObjectRefs []string       // archivos adjuntos
-    Tags       []string       // etiquetas
-    Metadata   map[string]any // metadatos del sistema
-    Checksum   string         // SHA-256 para detección de alteración
+    RecordID   uuid.UUID      // stable public identifier
+    OccurredAt time.Time      // when it happened
+    IngestedAt time.Time      // when it was recorded
+    Source     string         // origin: "erp", "scanner", "manual"
+    RecordType string         // type: "scan", "movement", "note"
+    EntityRef  *string        // entity: "lot:L-2024-001", "equipment:PUMP-01"
+    ActorRef   *string        // actor: "user:maria@company.com"
+    Title      *string        // descriptive title
+    Payload    map[string]any // free-form data (JSONB)
+    ObjectRefs []string       // attached files
+    Tags       []string       // labels
+    Metadata   map[string]any // system metadata
+    Checksum   string         // SHA-256 for tamper detection
 }
 ```
 
-**Inmutabilidad:** no existen operaciones de Update ni Delete. El almacén es append-only por diseño — reforzado a nivel de interfaz en Go, no por convención.
+**Immutability:** there are no Update or Delete operations. The store is append-only by design — enforced at the Go interface level, not by convention.
 
 ---
 
-## Arquitectura
+## Architecture
 
 ```
 internal/
-  record/       ← Dominio: modelo universal, validación, checksum
-  indexing/     ← Dominio: pipeline de indexación (text → chunk → embed → store)
-  query/        ← Dominio: motor de consulta (RAG + LLM)
-  auth/         ← Dominio: autenticación por API key
-  platform/     ← Adaptadores de infraestructura
+  record/       ← Domain: universal model, validation, checksum
+  indexing/     ← Domain: indexing pipeline (text → chunk → embed → store)
+  query/        ← Domain: query engine (RAG + LLM)
+  auth/         ← Domain: API key authentication
+  platform/     ← Infrastructure adapters
     postgres/   ← RecordStore, IndexStore, APIKeyStore
     nats/       ← EventPublisher, Consumer
     ollama/     ← Embedder (local)
     anthropic/  ← LanguageModel (Claude)
     http/       ← Handlers, Router, Middleware
-
 cmd/
-  api/          ← Servidor HTTP
-  worker/       ← Consumidor NATS para indexación async
-  toi/          ← CLI de ingesta y consulta
+  api/          ← HTTP server
+  worker/       ← NATS consumer for async indexing
+  toi/          ← CLI for ingestion and queries
 ```
 
-**Arquitectura hexagonal.** Los paquetes de dominio definen ports (interfaces). Los adaptadores los implementan. Se puede reemplazar cualquier componente de infraestructura sin tocar una línea del motor.
+**Hexagonal architecture.** Domain packages define ports (interfaces). Adapters implement them. Any infrastructure component can be replaced without touching the engine.
 
-**Infraestructura:**
+**Infrastructure:**
 
-| Servicio | Función |
-|----------|---------|
-| PostgreSQL 16 + pgvector | Almacén relacional + vectorial + FTS |
-| NATS JetStream | Pipeline async de indexación |
-| Ollama | Embeddings locales (nomic-embed-text, 768 dim) |
-| MinIO | Almacenamiento de objetos |
-| Redis | Cache (reservado) |
+| Service | Purpose |
+|---------|---------|
+| PostgreSQL 16 + pgvector | Relational + vector + FTS storage |
+| NATS JetStream | Async indexing pipeline |
+| Ollama | Local embeddings (nomic-embed-text, 768 dim) |
 
 ---
 
-## Privacidad
+## Benchmarks
 
-- **Embeddings:** locales. Los datos nunca salen de tu infraestructura para la generación de vectores.
-- **LLM:** externo y configurable. El usuario elige el proveedor (Claude, GPT, Llama, local). Solo las consultas viajan al LLM externo, no los registros completos.
+Run with `make bench`. Results on an i7-10700F:
 
-Si se requiere privacidad total, se implementa la interfaz `LanguageModel` contra un modelo local.
+| Benchmark | ops/sec | ns/op | allocs/op |
+|-----------|---------|-------|-----------|
+| Validate (minimal) | 186M | 6 ns | 0 |
+| Checksum (50 keys) | 45K | 25 us | 169 |
+| GenerateText (50 keys) | 62K | 19 us | 230 |
+| Chunk (single record) | 14.9M | 87 ns | 1 |
+| Full pipeline (100 keys) | 29K | 40 us | 437 |
+| AssembleContext (50 chunks) | 13K | 90 us | 419 |
+| BuildPrompt (32KB) | 167K | 7.6 us | 1 |
+
+The Go domain layer processes ~25,000 records/second. The real bottleneck in production is Ollama (embedding generation), not the engine itself.
 
 ---
 
-## Casos de uso
+## Privacy
 
-El motor es genérico. La implementación es vertical.
+- **Embeddings:** local. Your data never leaves your infrastructure for vector generation.
+- **LLM:** external and configurable. You choose the provider (Claude, GPT, Llama, local). Only queries travel to the external LLM, not full records.
 
-| Vertical | Qué registra | Quién lo usa |
-|----------|-------------|--------------|
-| **Trazabilidad operativa** | Escaneos, movimientos, notas de planta | Manufactura, logística |
-| **Compliance documental** | Evidencia regulatoria, certificaciones | Farmacéutica, alimentos |
-| **Auditoría de campo** | Inspecciones, fotos, hallazgos | Construcción, energía |
-| **Gestión de evidencia** | Documentos, cadena de custodia | Legal, gobierno |
-| **Knowledge base operativa** | Procedimientos, lecciones aprendidas | Cualquier industria |
+For total privacy, implement the `LanguageModel` interface against a local model.
+
+---
+
+## Use cases
+
+The engine is generic. The implementation is vertical.
+
+| Vertical | What it records | Who uses it |
+|----------|----------------|-------------|
+| **Operational traceability** | Scans, movements, plant notes | Manufacturing, logistics |
+| **Document compliance** | Regulatory evidence, certifications | Pharma, food |
+| **Field auditing** | Inspections, photos, findings | Construction, energy |
+| **Evidence management** | Documents, chain of custody | Legal, government |
+| **Operational knowledge base** | Procedures, lessons learned | Any industry |
 
 ---
 
 ## Stack
 
-| Tecnología | Versión | Propósito |
-|------------|---------|-----------|
-| Go | 1.22+ | Backend, CLI |
-| PostgreSQL | 16 | Almacén 3-en-1 (relacional + pgvector + FTS) |
-| pgvector | 0.7+ | Búsqueda vectorial con HNSW |
-| NATS | 2.10 | Mensajería async (JetStream) |
-| Ollama | latest | Embeddings locales |
-| chi | v5 | Router HTTP |
-| Docker Compose | — | Orquestación de infraestructura |
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Go | 1.25 | Backend, CLI |
+| PostgreSQL | 16 | 3-in-1 store (relational + pgvector + FTS) |
+| pgvector | 0.7+ | Vector search with HNSW |
+| NATS | 2.10 | Async messaging (JetStream) |
+| Ollama | latest | Local embeddings |
+| chi | v5 | HTTP router |
+| Docker Compose | — | Full-stack orchestration |
 
 ---
 
-## Métricas
+## Contributing
 
-| Métrica | Valor |
-|---------|-------|
-| Archivos Go | 69 |
-| Tests | 119 |
-| Binarios | 3 (api, worker, toi) |
-| Paquetes de dominio | 4 |
-| Paquetes de adaptador | 6 |
-| Latencia ingesta | ~5-10ms |
-| Latencia búsqueda | ~50-200ms |
-| Latencia query (LLM) | ~2-5s |
+TOI Motor is open source under the Apache 2.0 license. Contributions are welcome.
+
+### How to contribute
+
+1. **Fork** the repository
+2. **Create a branch** for your feature or fix (`git checkout -b feat/my-feature`)
+3. **Write tests** for new functionality
+4. **Run the test suite** before submitting (`make test && make lint`)
+5. **Open a pull request** with a clear description of what and why
+
+### Areas where help is needed
+
+- **Adapters for new LLMs** — implement the `LanguageModel` interface for providers beyond Claude
+- **File format parsers** — extend the CLI to support more formats (Excel, Parquet, XML)
+- **Embedding models** — add support for alternative embedding providers
+- **Language support** — improve entity extraction for non-English text
+- **Documentation** — tutorials, examples for specific verticals, deployment guides
+- **Integration tests** — expand E2E coverage with realistic scenarios
+- **Performance** — benchmark and optimize for high-throughput ingestion
+
+### Development setup
+
+```bash
+git clone https://github.com/ricaguroc/toi-motor.git
+cd toi-motor
+make dev-infra       # start postgres, nats, ollama
+make test            # run tests
+make bench           # run benchmarks
+make dev-api         # run API locally
+make dev-worker      # run worker locally (separate terminal)
+```
+
+### Code conventions
+
+- Hexagonal architecture: domain packages (`internal/record`, `internal/query`, `internal/indexing`) define interfaces; adapters (`internal/platform/*`) implement them
+- Tests live next to the code they test (`*_test.go` in the same package)
+- No `Update` or `Delete` on records — append-only by design
+- All API endpoints under `/api/v1/*` require `X-API-Key`
 
 ---
 
-## Documentación
+## Documentation
 
-- [Whitepaper técnico](docs/whitepaper.md) — arquitectura, modelo de datos, pipeline completo
-- [Motor vs Adapters](docs/paper-motor-vs-adapters.md) — separación arquitectónica y optimizaciones
-- [Release técnico v2](docs/release-v2.md) — estado actual, API implementada, resultados E2E
-
----
-
-## Licencia
-
-Apache 2.0 — [ver LICENSE](LICENSE)
-
-Sin vendor lock-in. Sin cajas negras. Código auditable.
+- [Technical whitepaper](docs/whitepaper.md) — architecture, data model, full pipeline
+- [Motor vs Adapters](docs/paper-motor-vs-adapters.md) — architectural separation and optimizations
+- [Technical release v2](docs/release-v2.md) — current state, implemented API, E2E results
 
 ---
 
-> *La realidad, cuando es correctamente registrada, puede ser consultada como si fuera un sistema.*
+## License
+
+Apache 2.0 — [see LICENSE](LICENSE)
+
+No vendor lock-in. No black boxes. Auditable code.
+
+---
+
+> *Reality, when correctly recorded, can be queried as if it were a system.*
