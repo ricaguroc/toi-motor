@@ -1,0 +1,109 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { GITHUB_URL } from '../config';
+---
+
+<Layout title="Open Source — TOI">
+  <section class="pt-28 pb-16 px-6">
+    <div class="max-w-3xl mx-auto">
+      <p class="text-xs font-semibold text-(--color-accent) uppercase tracking-wider mb-4">Open Source</p>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight leading-snug">
+        Por qué el motor es open source
+      </h1>
+    </div>
+  </section>
+
+  <section class="pb-24 px-6">
+    <div class="max-w-3xl mx-auto">
+      <!-- Quote -->
+      <blockquote class="border-l-2 border-(--color-accent) pl-6 py-2 mb-12">
+        <p class="text-lg text-(--color-text) leading-relaxed">
+          "La trazabilidad gestiona datos críticos. El software que registra la realidad
+          operativa de una empresa debe ser transparente, auditable, y libre de dependencia
+          de un proveedor."
+        </p>
+      </blockquote>
+
+      <!-- Reasons -->
+      <div class="space-y-10">
+        <div>
+          <h3 class="text-lg font-semibold mb-2">Transparencia</h3>
+          <p class="text-(--color-text-secondary) leading-relaxed">
+            Los datos operativos son demasiado críticos para depender de cajas negras.
+            Cada línea del motor es auditable. El código fuente está disponible para
+            inspección, modificación y redistribución bajo Apache 2.0.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold mb-2">Sin vendor lock-in</h3>
+          <p class="text-(--color-text-secondary) leading-relaxed">
+            Self-host en tu infraestructura. Modificá el motor para tus necesidades.
+            Cambiá de proveedor de LLM, de base de datos, o de cola de mensajes
+            sin depender de nadie. La arquitectura hexagonal lo hace posible por diseño.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold mb-2">Comunidad</h3>
+          <p class="text-(--color-text-secondary) leading-relaxed">
+            Los mejores adaptadores, las mejores integraciones, y los mejores casos de uso
+            nacen de la comunidad. Contribuí con nuevos adapters, reportá bugs, o proponé
+            mejoras. El motor crece con cada aporte.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold mb-2">Privacidad por defecto</h3>
+          <p class="text-(--color-text-secondary) leading-relaxed">
+            Los embeddings corren localmente — los datos nunca salen de tu infraestructura.
+            El LLM es externo y configurable: vos elegís qué proveedor usar y qué datos
+            comparten. Si necesitás privacidad total, usá un modelo local.
+          </p>
+        </div>
+      </div>
+
+      <!-- License -->
+      <div class="mt-16 p-8 rounded-xl bg-(--color-bg-alt) border border-(--color-border)">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-(--color-accent-soft) flex items-center justify-center">
+            <svg class="w-5 h-5 text-(--color-accent)" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z" />
+            </svg>
+          </div>
+          <div>
+            <p class="font-semibold text-(--color-text) mb-1">Apache License 2.0</p>
+            <p class="text-sm text-(--color-text-secondary) leading-relaxed">
+              Usalo, modificalo, distribuilo. Incluye grant de patentes explícito.
+              Sin restricciones de uso comercial.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metrics -->
+      <div class="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          { value: '69', label: 'Archivos Go' },
+          { value: '119', label: 'Tests' },
+          { value: '3', label: 'Binarios' },
+          { value: '4', label: 'Paquetes de dominio' },
+        ].map(m => (
+          <div class="text-center p-4 rounded-lg border border-(--color-border) bg-white">
+            <p class="text-2xl font-bold text-(--color-accent) font-mono">{m.value}</p>
+            <p class="text-xs text-(--color-text-muted) mt-1">{m.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <!-- CTA -->
+      <div class="mt-12 text-center">
+        <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-(--color-accent) hover:bg-(--color-accent-hover) text-white font-medium transition-colors text-sm">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          Ver en GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>

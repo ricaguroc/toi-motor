@@ -1,0 +1,121 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { GITHUB_URL } from '../config';
+---
+
+<Layout title="Empezar — TOI">
+  <section class="pt-28 pb-16 px-6">
+    <div class="max-w-3xl mx-auto">
+      <p class="text-xs font-semibold text-(--color-accent) uppercase tracking-wider mb-4">Empezar</p>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight leading-snug">
+        Funcionando en 60 segundos
+      </h1>
+      <p class="mt-4 text-(--color-text-secondary) leading-relaxed">
+        Un comando. Sin dependencias más allá de Docker.
+      </p>
+    </div>
+  </section>
+
+  <section class="pb-24 px-6">
+    <div class="max-w-3xl mx-auto space-y-6">
+      <!-- Step 1 -->
+      <div class="rounded-xl border border-(--color-border) bg-white overflow-hidden">
+        <div class="flex items-center gap-3 px-5 py-3 bg-(--color-bg-alt) border-b border-(--color-border)">
+          <span class="text-xs font-mono font-bold text-(--color-accent)">01</span>
+          <span class="text-sm text-(--color-text-secondary)">Clonar y levantar</span>
+        </div>
+        <div class="p-5 font-mono text-sm leading-7">
+          <div><span class="text-(--color-text-muted) select-none">$ </span><span class="text-(--color-text)">git clone {GITHUB_URL}</span></div>
+          <div><span class="text-(--color-text-muted) select-none">$ </span><span class="text-(--color-text)">cd motor && docker compose up -d</span></div>
+          <div class="text-(--color-green) mt-1">&#10003; PostgreSQL, NATS, Ollama, MinIO, Redis levantados</div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="rounded-xl border border-(--color-border) bg-white overflow-hidden">
+        <div class="flex items-center gap-3 px-5 py-3 bg-(--color-bg-alt) border-b border-(--color-border)">
+          <span class="text-xs font-mono font-bold text-(--color-green)">02</span>
+          <span class="text-sm text-(--color-text-secondary)">Iniciar el motor</span>
+        </div>
+        <div class="p-5 font-mono text-sm leading-7">
+          <div><span class="text-(--color-text-muted) select-none">$ </span><span class="text-(--color-text)">go run ./cmd/api/</span><span class="text-(--color-text-muted)">    # servidor HTTP en :8080</span></div>
+          <div><span class="text-(--color-text-muted) select-none">$ </span><span class="text-(--color-text)">go run ./cmd/worker/</span><span class="text-(--color-text-muted)"> # worker de indexación</span></div>
+          <div class="mt-2"><span class="text-(--color-text-muted) select-none">$ </span><span class="text-(--color-text)">go run ./scripts/create-apikey.go</span></div>
+          <div class="text-(--color-green)">&#10003; API key: toi_k1_abc123...</div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="rounded-xl border border-(--color-border) bg-white overflow-hidden">
+        <div class="flex items-center gap-3 px-5 py-3 bg-(--color-bg-alt) border-b border-(--color-border)">
+          <span class="text-xs font-mono font-bold text-(--color-warm)">03</span>
+          <span class="text-sm text-(--color-text-secondary)">Ingestar y consultar</span>
+        </div>
+        <div class="p-5 font-mono text-sm leading-7">
+          <div><span class="text-(--color-text-muted) select-none">$ </span><span class="text-(--color-text)">export TOI_API_KEY=toi_k1_abc123...</span></div>
+          <div class="mt-2"><span class="text-(--color-text-muted) select-none">$ </span><span class="text-(--color-text)">toi ingest file datos.csv --source erp --type movimiento</span></div>
+          <div class="text-(--color-green)">&#10003; 347 registros ingestados en 1.1s</div>
+          <div class="mt-2"><span class="text-(--color-text-muted) select-none">$ </span><span class="text-(--color-text)">toi query "¿qué movimientos hubo esta semana?"</span></div>
+          <div class="text-(--color-text-secondary) mt-1">Se encontraron 23 registros en 2 fuentes...</div>
+        </div>
+      </div>
+
+      <!-- CLI reference -->
+      <div class="mt-12">
+        <h2 class="text-xl font-bold mb-6">Referencia del CLI</h2>
+        <div class="rounded-xl border border-(--color-border) bg-white overflow-hidden">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-(--color-bg-alt) border-b border-(--color-border)">
+                <th class="text-left px-5 py-3 font-medium text-(--color-text-secondary)">Comando</th>
+                <th class="text-left px-5 py-3 font-medium text-(--color-text-secondary)">Descripción</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-(--color-border)">
+              <tr><td class="px-5 py-3 font-mono text-xs text-(--color-accent)">toi ingest file &lt;path&gt;</td><td class="px-5 py-3 text-(--color-text-secondary)">Importa CSV o JSON como registros</td></tr>
+              <tr><td class="px-5 py-3 font-mono text-xs text-(--color-accent)">toi ingest bulk &lt;path&gt;</td><td class="px-5 py-3 text-(--color-text-secondary)">Importa JSONL (un registro por línea)</td></tr>
+              <tr><td class="px-5 py-3 font-mono text-xs text-(--color-accent)">toi query &lt;pregunta&gt;</td><td class="px-5 py-3 text-(--color-text-secondary)">Consulta en lenguaje natural (RAG + LLM)</td></tr>
+              <tr><td class="px-5 py-3 font-mono text-xs text-(--color-accent)">toi search &lt;query&gt;</td><td class="px-5 py-3 text-(--color-text-secondary)">Búsqueda semántica sin LLM</td></tr>
+              <tr><td class="px-5 py-3 font-mono text-xs text-(--color-accent)">toi watch &lt;dir&gt;</td><td class="px-5 py-3 text-(--color-text-secondary)">Monitorea carpeta y auto-ingesta</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- API reference -->
+      <div class="mt-12">
+        <h2 class="text-xl font-bold mb-6">API REST</h2>
+        <p class="text-sm text-(--color-text-secondary) mb-4">Todos los endpoints requieren header <code class="text-xs font-mono bg-(--color-bg-code) px-1.5 py-0.5 rounded">X-API-Key</code>.</p>
+
+        <div class="rounded-xl border border-(--color-border) bg-white overflow-hidden">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-(--color-bg-alt) border-b border-(--color-border)">
+                <th class="text-left px-5 py-3 font-medium text-(--color-text-secondary)">Método</th>
+                <th class="text-left px-5 py-3 font-medium text-(--color-text-secondary)">Endpoint</th>
+                <th class="text-left px-5 py-3 font-medium text-(--color-text-secondary)">Descripción</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-(--color-border)">
+              <tr><td class="px-5 py-3 font-mono text-xs text-(--color-green)">POST</td><td class="px-5 py-3 font-mono text-xs">/api/v1/records</td><td class="px-5 py-3 text-(--color-text-secondary)">Ingestar un registro</td></tr>
+              <tr><td class="px-5 py-3 font-mono text-xs text-(--color-accent)">GET</td><td class="px-5 py-3 font-mono text-xs">/api/v1/records/:id</td><td class="px-5 py-3 text-(--color-text-secondary)">Obtener registro por ID</td></tr>
+              <tr><td class="px-5 py-3 font-mono text-xs text-(--color-accent)">GET</td><td class="px-5 py-3 font-mono text-xs">/api/v1/records</td><td class="px-5 py-3 text-(--color-text-secondary)">Listar con filtros</td></tr>
+              <tr><td class="px-5 py-3 font-mono text-xs text-(--color-green)">POST</td><td class="px-5 py-3 font-mono text-xs">/api/v1/search</td><td class="px-5 py-3 text-(--color-text-secondary)">Búsqueda semántica</td></tr>
+              <tr><td class="px-5 py-3 font-mono text-xs text-(--color-green)">POST</td><td class="px-5 py-3 font-mono text-xs">/api/v1/query</td><td class="px-5 py-3 text-(--color-text-secondary)">Consulta en lenguaje natural</td></tr>
+              <tr><td class="px-5 py-3 font-mono text-xs text-(--color-accent)">GET</td><td class="px-5 py-3 font-mono text-xs">/health</td><td class="px-5 py-3 text-(--color-text-secondary)">Estado de infraestructura</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="mt-12 text-center">
+        <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-(--color-accent) hover:bg-(--color-accent-hover) text-white font-medium transition-colors text-sm">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          Ver en GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>

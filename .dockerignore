@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+bin/
+tmp/
+landing/
+docs/
+.astro/
+*.md
+LICENSE
+toi

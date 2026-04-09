@@ -3,10 +3,7 @@ bin/
 *.exe
 *.test
 *.out
-
-# Dependencies
 vendor/
-node_modules/
 
 # Environment
 .env
@@ -14,8 +11,8 @@ node_modules/
 .env.*.local
 
 # IDE
-.vscode/
 .idea/
+.vscode/
 *.swp
 *.swo
 
@@ -25,10 +22,19 @@ Thumbs.db
 
 # Build
 dist/
-.next/
-.expo/
-*.apk
-*.ipa
+tmp/
+toi
+
+# Astro (generated)
+.astro/
+
+# Artifacts
+*.tar.gz
+
+# Node (landing)
+node_modules/
+landing/node_modules/
+landing/dist/
 
 # Coverage
 coverage/

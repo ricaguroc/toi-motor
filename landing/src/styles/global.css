@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────
+   DESIGN SYSTEM — TOI Landing v4
+   Light theme. Precision with warmth.
+   ───────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Backgrounds */
+  --color-bg: #FFFFFF;
+  --color-bg-alt: #F8FAFC;
+  --color-bg-code: #F1F5F9;
+
+  /* Surfaces */
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F8FAFC;
+
+  /* Borders */
+  --color-border: #E2E8F0;
+  --color-border-strong: #CBD5E1;
+
+  /* Text */
+  --color-text: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94A3B8;
+
+  /* Accent — deep indigo */
+  --color-accent: #4F46E5;
+  --color-accent-hover: #4338CA;
+  --color-accent-soft: rgba(79, 70, 229, 0.08);
+  --color-accent-text: #4F46E5;
+
+  /* Warm highlight */
+  --color-warm: #D97706;
+  --color-warm-soft: rgba(217, 119, 6, 0.08);
+
+  /* Functional */
+  --color-green: #059669;
+  --color-green-soft: rgba(5, 150, 105, 0.08);
+  --color-red: #DC2626;
+
+  /* Typography */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+}
+
+/* ── Base ──────────────────────────────────────────────────── */
+
+html {
+  background-color: var(--color-bg);
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: white;
+}
+
+/* ── Animations ────────────────────────────────────────────── */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.animate-in {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }

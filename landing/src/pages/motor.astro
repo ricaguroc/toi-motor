@@ -1,0 +1,167 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Motor — TOI">
+  <section class="pt-28 pb-16 px-6">
+    <div class="max-w-3xl mx-auto">
+      <p class="text-xs font-semibold text-(--color-accent) uppercase tracking-wider mb-4">Cómo funciona</p>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight leading-snug">
+        Tres pasos. Cualquier fuente de datos.
+      </h1>
+      <p class="mt-4 text-(--color-text-secondary) leading-relaxed">
+        Desde datos crudos hasta respuestas en lenguaje natural. Pipeline completamente asíncrono,
+        append-only, y agnóstico al proveedor de LLM.
+      </p>
+    </div>
+  </section>
+
+  <!-- Pipeline steps -->
+  <section class="pb-24 px-6">
+    <div class="max-w-3xl mx-auto space-y-12">
+      <!-- Step 1 -->
+      <div class="flex gap-6">
+        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-(--color-accent-soft) flex items-center justify-center">
+          <span class="text-sm font-bold text-(--color-accent) font-mono">01</span>
+        </div>
+        <div>
+          <h3 class="text-xl font-semibold mb-2">Ingesta</h3>
+          <p class="text-(--color-text-secondary) text-sm leading-relaxed mb-4">
+            Conectá cualquier fuente a través de adaptadores. CSV, APIs, scanners, ERPs, formularios.
+            El motor normaliza todo en registros universales con schema abierto.
+          </p>
+          <div class="rounded-lg bg-(--color-bg-code) border border-(--color-border) p-4 font-mono text-sm">
+            <span class="text-(--color-text-muted) select-none">$ </span>
+            <span class="text-(--color-text)">toi ingest file facturas.csv --source erp</span>
+            <br/>
+            <span class="text-(--color-green)">&#10003; 1,847 registros ingestados</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="flex gap-6">
+        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-(--color-green-soft) flex items-center justify-center">
+          <span class="text-sm font-bold text-(--color-green) font-mono">02</span>
+        </div>
+        <div>
+          <h3 class="text-xl font-semibold mb-2">Indexación</h3>
+          <p class="text-(--color-text-secondary) text-sm leading-relaxed mb-4">
+            Los registros se fragmentan (chunking), se convierten en embeddings, y se almacenan en una
+            base vectorial. Pipeline completamente asíncrono via NATS — nunca bloquea la API.
+          </p>
+          <div class="flex flex-wrap gap-2 text-xs font-mono">
+            <span class="px-2.5 py-1 rounded bg-(--color-bg-code) border border-(--color-border) text-(--color-text-secondary)">Record</span>
+            <span class="text-(--color-text-muted)">&rarr;</span>
+            <span class="px-2.5 py-1 rounded bg-(--color-bg-code) border border-(--color-border) text-(--color-text-secondary)">NATS</span>
+            <span class="text-(--color-text-muted)">&rarr;</span>
+            <span class="px-2.5 py-1 rounded bg-(--color-bg-code) border border-(--color-border) text-(--color-text-secondary)">Chunking</span>
+            <span class="text-(--color-text-muted)">&rarr;</span>
+            <span class="px-2.5 py-1 rounded bg-(--color-bg-code) border border-(--color-border) text-(--color-text-secondary)">Embedding</span>
+            <span class="text-(--color-text-muted)">&rarr;</span>
+            <span class="px-2.5 py-1 rounded bg-(--color-bg-code) border border-(--color-border) text-(--color-text-secondary)">pgvector</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="flex gap-6">
+        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-(--color-warm-soft) flex items-center justify-center">
+          <span class="text-sm font-bold text-(--color-warm) font-mono">03</span>
+        </div>
+        <div>
+          <h3 class="text-xl font-semibold mb-2">Consulta</h3>
+          <p class="text-(--color-text-secondary) text-sm leading-relaxed mb-4">
+            Hacé preguntas en lenguaje natural. El motor RAG recupera los registros relevantes,
+            y el LLM sintetiza la respuesta con fuentes citadas y nivel de confianza.
+          </p>
+          <div class="rounded-lg bg-(--color-bg-code) border border-(--color-border) p-4 font-mono text-sm">
+            <span class="text-(--color-text-muted) select-none">$ </span>
+            <span class="text-(--color-text)">toi query "¿qué pasó con el lote LP-4821?"</span>
+            <div class="mt-2 text-(--color-text-secondary)">
+              Respuesta: "Ingresó el 12/03, se detectó temperatura elevada..."<br/>
+              Confianza: <span class="text-(--color-green) font-semibold">alta</span> &middot;
+              Registros citados: <span class="text-(--color-accent)">3</span> &middot;
+              Latencia: <span class="text-(--color-text-muted)">1.2s</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture -->
+  <section class="py-24 px-6 bg-(--color-bg-alt)">
+    <div class="max-w-3xl mx-auto">
+      <p class="text-xs font-semibold text-(--color-accent) uppercase tracking-wider mb-4">Arquitectura</p>
+      <h2 class="text-2xl md:text-3xl font-bold tracking-tight mb-8">Hexagonal por diseño</h2>
+
+      <p class="text-(--color-text-secondary) leading-relaxed mb-8">
+        Los paquetes de dominio definen interfaces (ports). Los adaptadores los implementan.
+        Se puede reemplazar cualquier componente de infraestructura sin tocar una línea del motor.
+      </p>
+
+      <div class="rounded-xl border border-(--color-border) bg-white p-6 font-mono text-sm leading-relaxed">
+        <pre class="text-(--color-text-secondary) overflow-x-auto">internal/
+  <span class="text-(--color-text) font-semibold">record/</span>       <span class="text-(--color-text-muted)">← Dominio: modelo universal, validación, checksum</span>
+  <span class="text-(--color-text) font-semibold">indexing/</span>     <span class="text-(--color-text-muted)">← Dominio: pipeline (text → chunk → embed → store)</span>
+  <span class="text-(--color-text) font-semibold">query/</span>        <span class="text-(--color-text-muted)">← Dominio: motor de consulta (RAG + LLM)</span>
+  <span class="text-(--color-text) font-semibold">auth/</span>         <span class="text-(--color-text-muted)">← Dominio: autenticación por API key</span>
+  <span class="text-(--color-accent) font-semibold">platform/</span>    <span class="text-(--color-text-muted)">← Adaptadores de infraestructura</span>
+    postgres/   <span class="text-(--color-text-muted)">RecordStore, IndexStore, APIKeyStore</span>
+    nats/       <span class="text-(--color-text-muted)">EventPublisher, Consumer</span>
+    ollama/     <span class="text-(--color-text-muted)">Embedder (local)</span>
+    anthropic/  <span class="text-(--color-text-muted)">LanguageModel (Claude)</span>
+    http/       <span class="text-(--color-text-muted)">Handlers, Router, Middleware</span>
+
+cmd/
+  <span class="text-(--color-text) font-semibold">api/</span>          <span class="text-(--color-text-muted)">← Servidor HTTP</span>
+  <span class="text-(--color-text) font-semibold">worker/</span>       <span class="text-(--color-text-muted)">← Consumidor NATS para indexación</span>
+  <span class="text-(--color-text) font-semibold">toi/</span>          <span class="text-(--color-text-muted)">← CLI de ingesta y consulta</span></pre>
+      </div>
+
+      <!-- Stack -->
+      <div class="mt-12 grid sm:grid-cols-2 gap-4">
+        {[
+          { name: 'PostgreSQL 16 + pgvector', role: 'Almacén 3-en-1: relacional + vectorial + FTS' },
+          { name: 'NATS JetStream', role: 'Pipeline async de indexación' },
+          { name: 'Ollama', role: 'Embeddings locales (nomic-embed-text)' },
+          { name: 'Go', role: 'Backend y CLI, binario único' },
+        ].map(item => (
+          <div class="flex items-start gap-3 p-4 rounded-lg border border-(--color-border) bg-white">
+            <span class="w-1.5 h-1.5 rounded-full bg-(--color-accent) mt-2 flex-shrink-0"></span>
+            <div>
+              <p class="text-sm font-medium text-(--color-text)">{item.name}</p>
+              <p class="text-xs text-(--color-text-muted) mt-0.5">{item.role}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Privacy -->
+  <section class="py-24 px-6">
+    <div class="max-w-3xl mx-auto">
+      <p class="text-xs font-semibold text-(--color-accent) uppercase tracking-wider mb-4">Privacidad</p>
+      <h2 class="text-2xl md:text-3xl font-bold tracking-tight mb-8">Tus datos, tu control</h2>
+
+      <div class="grid sm:grid-cols-2 gap-6">
+        <div class="p-6 rounded-xl border border-(--color-green)/20 bg-(--color-green-soft)">
+          <p class="text-sm font-semibold text-(--color-green) mb-2">Embeddings: locales</p>
+          <p class="text-sm text-(--color-text-secondary) leading-relaxed">
+            Los datos nunca salen de tu infraestructura para la generación de vectores.
+            El modelo nomic-embed-text corre localmente via Ollama.
+          </p>
+        </div>
+        <div class="p-6 rounded-xl border border-(--color-border) bg-white">
+          <p class="text-sm font-semibold text-(--color-text) mb-2">LLM: externo y configurable</p>
+          <p class="text-sm text-(--color-text-secondary) leading-relaxed">
+            Vos elegís el proveedor. Claude, GPT, Llama, local.
+            Si necesitás privacidad total, implementá la interfaz contra un modelo local.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

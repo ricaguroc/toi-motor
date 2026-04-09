@@ -1,0 +1,91 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const useCases = [
+  {
+    vertical: 'Trazabilidad operativa',
+    audience: 'Manufactura, logística, supply chain',
+    question: '¿Qué pasó con el lote LP-4821 el martes pasado?',
+    answer: 'Ingresó el 12/03 a las 08:30. Se detectó temperatura elevada a las 14:30 en cámara 2. Acción correctiva registrada por el operador Pérez.',
+    records: ['Escaneos de equipos', 'Logs de movimientos', 'Notas de operadores', 'Reportes de turno'],
+  },
+  {
+    vertical: 'Compliance documental',
+    audience: 'Farmacéutica, alimentos, dispositivos médicos',
+    question: '¿Tenemos toda la evidencia para la auditoría ISO 13485?',
+    answer: '142 registros en el período. 12 certificaciones de calibración. 28 reportes de inspección. Confianza: alta. Faltaría: certificado de proveedor X.',
+    records: ['Certificados', 'Reportes de inspección', 'Registros de calibración', 'SOPs'],
+  },
+  {
+    vertical: 'Auditoría de campo',
+    audience: 'Construcción, energía, minería',
+    question: 'Mostrá todos los incidentes de seguridad en zona B este mes.',
+    answer: '5 incidentes. 3 de EPP incompleto, 1 de altura, 1 de derrames. Todos con acción correctiva cerrada excepto el incidente de derrames del 15/03.',
+    records: ['Fotos de inspección', 'Notas de campo', 'No conformidades', 'Acciones correctivas'],
+  },
+  {
+    vertical: 'Gestión de evidencia',
+    audience: 'Legal, gobierno, organismos públicos',
+    question: '¿Quién tuvo acceso al expediente 4210 en los últimos 30 días?',
+    answer: '7 accesos registrados. 4 por la Dra. García, 2 por el perito Martínez, 1 por mesa de entradas. Todos con timestamp y checksum verificable.',
+    records: ['Documentos legales', 'Cadena de custodia', 'Logs de acceso', 'Dictámenes'],
+  },
+];
+---
+
+<Layout title="Casos de uso — TOI">
+  <section class="pt-28 pb-16 px-6">
+    <div class="max-w-3xl mx-auto">
+      <p class="text-xs font-semibold text-(--color-accent) uppercase tracking-wider mb-4">Casos de uso</p>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight leading-snug">
+        Un motor. Muchas verticales.
+      </h1>
+      <p class="mt-4 text-(--color-text-secondary) leading-relaxed">
+        El motor es genérico. La implementación es vertical. Cada industria tiene registros
+        que hoy nadie puede buscar.
+      </p>
+    </div>
+  </section>
+
+  <section class="pb-24 px-6">
+    <div class="max-w-3xl mx-auto space-y-8">
+      {useCases.map(uc => (
+        <div class="rounded-xl border border-(--color-border) bg-white overflow-hidden">
+          <!-- Header -->
+          <div class="px-6 pt-6 pb-4">
+            <p class="text-xs font-medium text-(--color-text-muted) uppercase tracking-wider mb-1">{uc.audience}</p>
+            <h3 class="text-lg font-semibold text-(--color-text)">{uc.vertical}</h3>
+          </div>
+
+          <!-- Q&A -->
+          <div class="px-6 pb-4">
+            <div class="rounded-lg bg-(--color-bg-alt) p-4">
+              <p class="text-sm font-medium text-(--color-text) mb-2">
+                <span class="text-(--color-accent) font-mono text-xs mr-1.5">Q</span>
+                {uc.question}
+              </p>
+              <p class="text-sm text-(--color-text-secondary) leading-relaxed">
+                <span class="text-(--color-green) font-mono text-xs mr-1.5">A</span>
+                {uc.answer}
+              </p>
+            </div>
+          </div>
+
+          <!-- Record types -->
+          <div class="px-6 pb-6">
+            <p class="text-xs text-(--color-text-muted) uppercase tracking-wider mb-2">Registros que ingesta</p>
+            <div class="flex flex-wrap gap-1.5">
+              {uc.records.map(r => (
+                <span class="text-xs px-2 py-0.5 rounded bg-(--color-bg-alt) text-(--color-text-secondary)">{r}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <p class="text-center text-sm text-(--color-text-muted) pt-4">
+        Estos son puntos de partida. El motor se adapta a cualquier dominio donde existan registros.
+      </p>
+    </div>
+  </section>
+</Layout>

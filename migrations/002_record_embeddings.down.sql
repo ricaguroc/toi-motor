@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS record_embeddings;
+DROP EXTENSION IF EXISTS vector;

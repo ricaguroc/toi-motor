@@ -1,0 +1,80 @@
+---
+import { GITHUB_URL, NAV_LINKS } from '../config';
+
+const currentPath = Astro.url.pathname;
+---
+
+<nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-(--color-border)">
+  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <!-- Brand -->
+    <a href="/" class="flex items-center gap-2.5 no-underline group">
+      <span class="font-mono font-bold text-xl text-(--color-text) tracking-tight">TOI</span>
+      <span class="hidden sm:block h-4 w-px bg-(--color-border)"></span>
+      <span class="hidden sm:block text-[13px] text-(--color-text-muted)">Motor Universal de Registros</span>
+    </a>
+
+    <!-- Desktop links -->
+    <div class="hidden md:flex items-center gap-7">
+      {NAV_LINKS.map(link => (
+        <a
+          href={link.href}
+          class:list={[
+            'text-sm transition-colors',
+            currentPath === link.href
+              ? 'text-(--color-accent) font-medium'
+              : 'text-(--color-text-secondary) hover:text-(--color-text)'
+          ]}
+        >
+          {link.label}
+        </a>
+      ))}
+      <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer"
+         class="text-sm text-(--color-text-secondary) hover:text-(--color-text) transition-colors flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <a href="/empezar" class="text-sm font-medium px-4 py-2 rounded-lg bg-(--color-accent) hover:bg-(--color-accent-hover) text-white transition-colors">
+        Empezar
+      </a>
+    </div>
+
+    <!-- Mobile toggle -->
+    <button id="nav-toggle" class="md:hidden text-(--color-text-secondary)" aria-label="Abrir menú">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="nav-dropdown" class="md:hidden border-t border-(--color-border) bg-white" hidden>
+    <div class="px-6 py-4 flex flex-col gap-1">
+      {NAV_LINKS.map(link => (
+        <a href={link.href}
+           class:list={[
+             'text-sm py-2.5 transition-colors',
+             currentPath === link.href
+               ? 'text-(--color-accent) font-medium'
+               : 'text-(--color-text-secondary)'
+           ]}>
+          {link.label}
+        </a>
+      ))}
+      <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" class="text-sm text-(--color-text-secondary) py-2.5">GitHub</a>
+      <a href="/empezar" class="text-sm font-medium px-4 py-2.5 rounded-lg bg-(--color-accent) text-white text-center mt-2">Empezar</a>
+    </div>
+  </div>
+</nav>
+
+<script>
+  const toggle = document.getElementById('nav-toggle');
+  const dropdown = document.getElementById('nav-dropdown');
+  if (toggle && dropdown) {
+    toggle.addEventListener('click', () => {
+      dropdown.hidden = !dropdown.hidden;
+    });
+    dropdown.querySelectorAll('a').forEach(a =>
+      a.addEventListener('click', () => { dropdown.hidden = true; })
+    );
+  }
+</script>
